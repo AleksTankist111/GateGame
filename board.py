@@ -11,7 +11,7 @@ class Board:
         self.sources = []
         self.sinks = []
         self.gates = {}
-        self.__saved_modules = {'NOT': NOTGate('NOT'), 'AND': ANDGate('AND')}  # TODO: add NOT, AND gates
+        self.__saved_modules = {'NOT': NOTGate('NOT'), 'AND': ANDGate('AND')}
         self._cur_name = ''
 
     @property

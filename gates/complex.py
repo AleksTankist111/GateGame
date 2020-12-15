@@ -8,7 +8,7 @@ class ComplexGate(Gate):
 
     def __init__(self, sources, gates, sinks, name):
         self.gates = tuple(gates)
-        self.inputs = tuple(source.to_pipe() for source in sources)  # TODO: ошибка здесь
+        self.inputs = tuple(source.to_pipe() for source in sources)
         if not (type(sinks[0]) is Container):
             self.outputs = []
             for sink in sinks:
@@ -30,8 +30,6 @@ class ComplexGate(Gate):
         return tuple(out.get() for out in self.outputs)
 
     def used(self):
-        for gate in self.gates:  # TODO: оставить только последнюю строку
-            gate.used()
         self.is_used = True
 
     def update(self):

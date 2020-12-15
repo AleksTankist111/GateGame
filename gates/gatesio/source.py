@@ -5,7 +5,7 @@ class Source(Pipe):
 
     def __init__(self):
         self._value = False
-        self.users = []     # TODO: delete this array. It is useless for now? No (need for creation a new ComplexGate)
+        self.users = []
 
     def change(self):
         self._value = not self._value

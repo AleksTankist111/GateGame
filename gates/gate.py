@@ -37,13 +37,6 @@ class Gate:
             self.last_outputs = self._process()
             return self.last_outputs
 
-    def set(self, *args):
-        """
-        Function that receives pipes in args to input pipes
-        """
-        for i in range(len(args)):
-            self.inputs[i].set(args[i])
-
     def set_name(self, new_name: str):
         self.name = new_name
 

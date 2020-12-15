@@ -25,7 +25,7 @@ if __name__ == '__main__':
     cur_board.sources[1].add_user(cur_board.gates['OR1'].inputs[1])
     cur_board.gates['OR1'].outputs[0].add_user(cur_board.sinks[0])
 
-    cur_board.print_content()  # TODO: ошбибка при сохранении - соединение с source pipes. + при создании - связей нет
+    cur_board.print_content()
     print('Result: ', cur_board.compute(), '. Should be False')  # <-- error in calculation
     cur_board.sources[0].change()
     print('Result: ', cur_board.compute(), '. Should be True')
