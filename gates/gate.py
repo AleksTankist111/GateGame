@@ -1,6 +1,5 @@
 from abc import abstractmethod
 from typing import Tuple
-from gates.gatesio.pipe import Pipe
 
 
 class Gate:
@@ -18,16 +17,14 @@ class Gate:
         pass
 
     @abstractmethod
-    def used(self):
-        self.is_used = True
+    def copy(self, new_name):
+        pass
 
-    @abstractmethod
     def update(self):
         self.is_used = False
 
-    @abstractmethod
-    def copy(self, new_name):
-        pass
+    def used(self):
+        self.is_used = True
 
     def get(self) -> Tuple[bool, ...]:
         if self.is_used:

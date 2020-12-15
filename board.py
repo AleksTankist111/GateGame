@@ -2,7 +2,6 @@ from gates.gate import *
 from typing import Tuple
 from gates.complex import ComplexGate
 from gates.elementary import *
-from gates.gatesio import *
 
 
 class Board:
@@ -20,11 +19,13 @@ class Board:
 
     def add_sources(self, n=1):
         for i in range(n):
-            self.sources.append(Source())
+            item = Source(str(len(self.sources)))
+            self.sources.append(Container(item, len(self.sources)))
 
     def add_sinks(self, n=1):
         for i in range(n):
-            self.sinks.append(Sink())
+            item = Pipe(str(len(self.sources)))
+            self.sources.append(Container(item, len(self.sources)))
 
     def clear(self):
         self.sources.clear()
