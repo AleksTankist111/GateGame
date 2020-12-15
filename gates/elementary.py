@@ -6,11 +6,11 @@ from gates.container import Container
 class ANDGate(Gate):
 
     def __init__(self, name):
-        self.inputs = (Container(None, 0), Container(None, 1))
+        self.inputs = (Container(None, 0), Container(None, 0))
         self.outputs = (Container(self, 0),)
         self.last_outputs = self._process()
         self.is_used = False
-        self.name = name
+        self.name = 'AND' + name
 
     def _process(self) -> Tuple[bool, ...]:
         product = all([inp.get() for inp in self.inputs])
@@ -27,7 +27,7 @@ class NOTGate(Gate):
         self.outputs = (Container(self, 0),)
         self.last_outputs = self._process()
         self.is_used = False
-        self.name = name
+        self.name = 'NOT' + name
 
     def _process(self) -> Tuple[bool, ...]:
         product = not self.inputs[0].get()
@@ -40,12 +40,11 @@ class NOTGate(Gate):
 class Source(Gate):
 
     def __init__(self, name):
-        self.inputs = None
-        self.outputs = (Container(self, 0),)
         self._value = False
+        self.outputs = (Container(self, 0),)
         self.last_outputs = self._process()
         self.is_used = False
-        self.name = name
+        self.name = 'SRC' + name
 
     def _process(self) -> Tuple[bool, ...]:
         return self._value,
@@ -53,16 +52,14 @@ class Source(Gate):
     def copy(self, new_name) -> Gate:
         return Source(new_name)
 
-    def to_pipe(self) -> Gate:
-        pipe = Pipe()
-        pipe.inputs[0].set(self.inputs[0].get_pointer())
-        return pipe
-
     def set(self, value):
         self._value = value
 
     def change(self):
         self._value = not self._value
+
+    def used(self):
+        pass
 
 
 class Pipe(Gate):
@@ -72,7 +69,7 @@ class Pipe(Gate):
         self.outputs = (Container(self, 0),)
         self.last_outputs = self._process()
         self.is_used = False
-        self.name = name
+        self.name = 'PIP' + name
 
     def _process(self) -> Tuple[bool, ...]:
         return self.inputs[0].get(),

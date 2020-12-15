@@ -19,13 +19,13 @@ class Board:
 
     def add_sources(self, n=1):
         for i in range(n):
-            item = Source(str(len(self.sources)))
-            self.sources.append(Container(item, len(self.sources)))
+            item = Source('IN{:d}'.format(len(self.sources)))
+            self.sources.append(item)
 
     def add_sinks(self, n=1):
         for i in range(n):
-            item = Pipe(str(len(self.sources)))
-            self.sources.append(Container(item, len(self.sources)))
+            item = Pipe('OUT{:d}'.format(len(self.sources)))
+            self.sinks.append(Container(item, 0))
 
     def clear(self):
         self.sources.clear()
@@ -56,8 +56,8 @@ class Board:
             print('Module with this name is not exist or not available now')
         else:
             if new_name is None:
-                new_name = str(self.count)
-            new_gate = self.__saved_modules[name].copy(new_name)
+                new_name = str(len(self.__saved_modules))
+            new_gate = self.__saved_modules[name].copy(name+new_name)
             self.gates[new_name] = new_gate
 
     def load(self, name):  # TODO: implement load module to board for changes (NOTE: CUR MOD CANNOT add cur elem)
@@ -66,6 +66,8 @@ class Board:
     def update(self):
         for gate in self.gates.values():
             gate.update()
+        for sink in self.sinks:
+            sink.update()
 
     def compute(self) -> Tuple[bool, ...]:
         res = tuple(out.get() for out in self.sinks)

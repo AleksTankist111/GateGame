@@ -34,8 +34,33 @@ class Gate:
             self.last_outputs = self._process()
             return self.last_outputs
 
-    def set_name(self, new_name: str):
-        self.name = new_name
+    def deep_copy(self, dict_inputs, dict_gates, dict_outputs):
+        if not ((self.name in dict_inputs) or (self.name in dict_gates) or (self.name in dict_outputs)):
+            new_item = self.copy(self.name)
+            if self.name[:3] == 'PIP':
+                if self.name[3:5] == 'IN':
+                    dict_inputs[self.name] = new_item
+                else:
+                    dict_outputs[self.name] = new_item
+            else:
+                dict_gates[self.name] = new_item
+
+            for i, inp in enumerate(self.inputs):
+                if inp.get_pointer() is None:
+                    new_inp = None
+                else:
+                    new_inp = inp.get_pointer().deep_copy(dict_inputs, dict_gates, dict_outputs)
+                new_item.inputs[i].connect(new_inp, inp.id)
+
+            return new_item
+
+        else:
+            if self.name in dict_inputs:
+                return dict_inputs[self.name]
+            elif self.name in dict_gates:
+                return dict_gates[self.name]
+            else:
+                return dict_outputs[self.name]
 
 
 if __name__ == '__main__':
