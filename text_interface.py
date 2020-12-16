@@ -2,6 +2,7 @@ from gates import *
 from board import Board
 import os
 import re
+from random import randint
 
 
 def draw_board(board):
@@ -26,7 +27,7 @@ def parse(line):
 
 def helper(item):
     os.system('cls')
-    if not item:
+    if not item:    # TODO: перенести все записи в файл "help.txt"
         print('Space {:d}x{:d} is available for you to put there gates.'.format(N, M))
         print('Each gate not wider than 10 cells, but can be of any height(depends of number of I/O)')
         print('PLEASE USE NAMES <6 symbols length of!')
@@ -58,28 +59,43 @@ def clear_board():
     return [[' ' for i in range(M)] for j in range(N)]
 
 
-def draw_gate(gate, x, y):
-    inp_count = len(gate.inputs)
+def draw_gate(item):
+    gate = item[0]
+    x, y = item[1:3]
+    fore, back = item[3]
+    if gate.name[:3] != 'SRC':
+        inp_count = len(gate.inputs)
+    else:
+        inp_count = 0
     out_count = len(gate.outputs)
-    height = max(len(gate.inputs), len(gate.outputs))
+    height = max(inp_count, out_count)
     for i in range(x + 1, x + 9):
-        text_board[y][i] = '_'
+        text_board[y][i] = fore + '_' + RESET_COLORS
     for i in range(height):
         if inp_count > 0:
-            text_board[y + 1 + i][x - 1] = '-'
+            text_board[y + 1 + i][x - 1] = fore + '-' + RESET_COLORS
             inp_count -= 1
-        text_board[y + 1 + i][x] = '|'
-        text_board[y + 1 + i][x + 9] = '|'
+        text_board[y + 1 + i][x] = fore + '|' + back
+        text_board[y + 1 + i][x + 9] = RESET_COLORS + fore + '|' + RESET_COLORS
         if out_count > 0:
-            text_board[y + 1 + i][x + 10] = '-'
+            text_board[y + 1 + i][x + 10] = fore + '-' + RESET_COLORS
             out_count -= 1
     for j in range(1, 9):
-        text_board[y + 1 + i][x + j] = '_'
+        text_board[y + 1 + i][x + j] = fore + back + '_' + RESET_COLORS
     bias = max((8 - len(gate.name)) // 2 + (8 - len(gate.name)) % 2, 0)
     for j in range(x + 1 + bias, x + 9 - bias):
-        text_board[y + 1 + height // 2][j] = gate.name[j - x - 1 - bias]
+        text_board[y + 1 + height // 2][j] = fore + back + gate.name[j - x - 1 - bias] + RESET_COLORS
 
 
+def rnd_color_generator():
+    fore = randint(31, 39)
+    back = randint(31, 39)
+    while back == fore:
+        back = randint(31, 39)
+    return '\x1b[{:d}m'.format(fore), '\x1b[{:d}m'.format(back+10)
+
+
+RESET_COLORS = '\x1b[0m'
 N = 25
 M = 100
 status = True
@@ -127,13 +143,14 @@ while status:
                     x = int(x)
                     y = int(y)
                     cur_board.add(gate_type, name)
-                    coords[name] = (x, y)
+                    colors = rnd_color_generator()
                     if gate_type == 'SRC':
-                        draw_gate(cur_board.sources[gate_type + name], x, y)
+                        coords[name] = (cur_board.sources[gate_type + name], x, y, colors)
                     elif gate_type == 'PIP':
-                        draw_gate(cur_board.sinks[gate_type + name], x, y)
+                        coords[name] = (cur_board.sinks[gate_type + name], x, y, colors)
                     else:
-                        draw_gate(cur_board.gates[gate_type + name], x, y)
+                        coords[name] = (cur_board.gates[gate_type + name], x, y, colors)
+                    draw_gate(coords[name])
             else:
                 input('Wrong creation call. Try again...')
         else:
