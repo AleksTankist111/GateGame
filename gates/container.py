@@ -1,8 +1,9 @@
 class Container:
 
-    def __init__(self, obj, obj_id: int):
+    def __init__(self, obj, obj_id=0, master=None):
         self._item = obj
         self.id = obj_id
+        self.master = master
 
     def get(self):
         if self._item is None:
@@ -23,4 +24,11 @@ class Container:
         self._item.used()
 
     def copy(self):
-        return Container(None, self.id)
+        return self._item.copy(self._item.name)
+
+    def deep_copy(self, *args):
+        return self._item.deep_copy(*args)
+
+    @property
+    def name(self):
+        return self._item.name

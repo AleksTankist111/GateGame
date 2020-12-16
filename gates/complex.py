@@ -7,22 +7,24 @@ from gates.container import Container
 class ComplexGate(Gate):
 
     def __init__(self, sources, gates, sinks, name):
-        self.inputs = tuple(Pipe(source.name) for source in sources)
-        self.gates = tuple(gates)
+        self.inputs = [Pipe(source.name[3:]) for source in sources]
+        self.gates = list(gates)
         for gate in gates:
-            for inp in gate:
+            for inp in gate.inputs:
                 item = inp.get_pointer()
-                if item in sinks:
-                    idx = sinks.index(item)
+                if item in sources:
+                    idx = sources.index(item)
                     inp.connect(self.inputs[idx])
-
-        self.outputs = tuple(sinks)
-
+        self.gates.extend(self.inputs)
+        self.inputs = tuple(inp.inputs[0] for inp in self.inputs)
+        self.gates.extend(sinks)
+        self.outputs = tuple(sink.outputs[0] for sink in sinks)
+        self.gates = tuple(self.gates)
         self.is_used = False
         self.update()
         self.last_outputs = self._process()
         self.update()
-        self.name = 'COM' + name
+        self.name = 'COM_' + name
 
     def _process(self) -> Tuple[bool, ...]:
         return tuple(out.get() for out in self.outputs)
@@ -30,10 +32,6 @@ class ComplexGate(Gate):
     def update(self):
         for gate in self.gates:
             gate.update()
-        for out in self.outputs:
-            out.update()
-        for inp in self.inputs:
-            inp.update()
         self.is_used = False
 
     def copy(self, new_name):
@@ -46,16 +44,13 @@ class ComplexGate(Gate):
 
         new_sources = []
         for item in self.inputs:
-            new_sources.append(dict_inputs[item.name])
+            new_sources.append(dict_inputs[item.master.name])
         new_gates = []
         for item in self.gates:
-            new_gates.append(dict_gates[item.name])
+            if item.name in dict_gates:
+                new_gates.append(dict_gates[item.name])
         new_sinks = []
         for item in self.outputs:
-            new_sinks.append(dict_outputs[item.name])
+            new_sinks.append(dict_outputs[item.master.name])
 
-        # Идея - рекурсивная статическая функция класса Gate. Идет от конца к началу, добавляя в словарь
-        # созданные копии (ключ - имя оригинала). КАК ПОЛУЧИТЬ ДОСТУП К СЛОВАРЮ внутри функции?
-        # Как себя такая функция будет вести при копировании сложного гейта внутри сложного гейта?
-        # Если передавать словари как аргументы, то вроде норм. Хоть и реданданси.
-        return ComplexGate(new_sources, new_gates, new_sinks, new_name)
+        return ComplexGate(new_sources, new_gates, new_sinks, self.name[4:] + new_name)

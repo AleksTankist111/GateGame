@@ -6,8 +6,8 @@ from gates.container import Container
 class ANDGate(Gate):
 
     def __init__(self, name):
-        self.inputs = (Container(None, 0), Container(None, 0))
-        self.outputs = (Container(self, 0),)
+        self.inputs = (Container(None, 0, self), Container(None, 0, self))
+        self.outputs = (Container(self, 0, self),)
         self.last_outputs = self._process()
         self.is_used = False
         self.name = 'AND' + name
@@ -23,8 +23,8 @@ class ANDGate(Gate):
 class NOTGate(Gate):
 
     def __init__(self, name):
-        self.inputs = (Container(None, 0),)
-        self.outputs = (Container(self, 0),)
+        self.inputs = (Container(None, 0, self),)
+        self.outputs = (Container(self, 0, self),)
         self.last_outputs = self._process()
         self.is_used = False
         self.name = 'NOT' + name
@@ -41,7 +41,7 @@ class Source(Gate):
 
     def __init__(self, name):
         self._value = False
-        self.outputs = (Container(self, 0),)
+        self.outputs = (Container(self, 0, self),)
         self.last_outputs = self._process()
         self.is_used = False
         self.name = 'SRC' + name
@@ -65,8 +65,8 @@ class Source(Gate):
 class Pipe(Gate):
 
     def __init__(self, name):
-        self.inputs = (Container(None, 0),)
-        self.outputs = (Container(self, 0),)
+        self.inputs = (Container(None, 0, self),)
+        self.outputs = (Container(self, 0, self),)
         self.last_outputs = self._process()
         self.is_used = False
         self.name = 'PIP' + name

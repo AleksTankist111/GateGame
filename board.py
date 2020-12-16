@@ -10,7 +10,7 @@ class Board:
         self.sources = []
         self.sinks = []
         self.gates = {}
-        self.__saved_modules = {'NOT': NOTGate('NOT'), 'AND': ANDGate('AND')}
+        self.__saved_modules = {'NOT': NOTGate(''), 'AND': ANDGate('')}
         self._cur_name = ''
 
     @property
@@ -25,7 +25,7 @@ class Board:
     def add_sinks(self, n=1):
         for i in range(n):
             item = Pipe('OUT{:d}'.format(len(self.sources)))
-            self.sinks.append(Container(item, 0))
+            self.sinks.append(item)
 
     def clear(self):
         self.sources.clear()
@@ -42,7 +42,7 @@ class Board:
                 and len(self.sources) > 0 and len(self.sinks) > 0:
 
             new_gate = ComplexGate(self.sources, list(self.gates.values()), self.sinks, name)
-            self.__saved_modules[name] = new_gate
+            self.__saved_modules[new_gate.name] = new_gate
             self.clear()
         else:
             print('This module name already exist')
@@ -57,8 +57,8 @@ class Board:
         else:
             if new_name is None:
                 new_name = str(len(self.__saved_modules))
-            new_gate = self.__saved_modules[name].copy(name+new_name)
-            self.gates[new_name] = new_gate
+            new_gate = self.__saved_modules[name].copy(new_name)
+            self.gates[new_gate.name] = new_gate
 
     def load(self, name):  # TODO: implement load module to board for changes (NOTE: CUR MOD CANNOT add cur elem)
         pass
