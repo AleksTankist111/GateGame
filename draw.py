@@ -8,8 +8,10 @@ class Textboard:
     def __init__(self, n, m):
         self.N = n
         self.M = m
-        self.board = self.clear_board()
         self.coords = {}
+        self.board = None
+        self.clear_board()
+
 
     def draw_board(self):
         print(' ' + '-' * self.M)
@@ -28,6 +30,7 @@ class Textboard:
     def draw_gate(self, name):
         RESET_COLORS = '\x1b[0m'
         underscore = '\x1b[4m'
+        bright = '\x1b[1m'
         item = self.coords[name]
         gate = item[0]
         x, y = item[1:3]
@@ -53,7 +56,7 @@ class Textboard:
             self.board[y + 1 + i][x + j] = fore + back + '_' + RESET_COLORS
         bias = max((8 - len(gate.name)) // 2 + (8 - len(gate.name)) % 2, 0)
         for j in range(x + 1 + bias, x + 9 - bias):
-            self.board[y + 1 + height // 2][j] = fore + back + underscore \
+            self.board[y + 1 + height // 2][j] = fore + back + bright + underscore \
                                                  + gate.name[j - x - 1 - bias] + RESET_COLORS
 
     def draw_connection(self, start_name, out, fin_name, inp):
@@ -88,7 +91,6 @@ class Textboard:
                 new_cost = cost_so_far[current] + 1
                 if vert not in cost_so_far or new_cost < cost_so_far[vert]:
                     cost_so_far[vert] = new_cost
-                    print(vert, 'cost: ', new_cost, 'priority', self.__heuristic(goal, vert), 'neigh:', self.__neighbors(vert))
                     priority = new_cost + self.__heuristic(goal, vert)
                     frontier.put(vert, priority)
                     came_from[vert] = current
@@ -137,7 +139,7 @@ class Textboard:
         # Binary search tree for Heuristic distance function
         # ┐└ ┘┌
 
-    def __neighbors(self, coord):   #ToDo: ошибка где-то здесь, видимо. Он не может добраться до объекта
+    def __neighbors(self, coord):
         left_flag = False
         up_flag = False
         right_flag = False
@@ -151,12 +153,9 @@ class Textboard:
                     left_flag = True
 
         if coord[0] < self.M - 1:
-            if '_' not in self.board[coord[1]][coord[0]+1]:
-                if coord[0] + 1 < self.M - 1:
-                    if not re.search('\[4\dm',self.board[coord[1]][coord[0]+2]):
-                        right_flag = True
-                else:
-                    right_flag = True
+            if '_' not in self.board[coord[1]][coord[0]+1] and \
+                    (not re.search('\[4\dm', self.board[coord[1]][coord[0]+1])):
+                right_flag = True
 
         if coord[1] > 0:
             if not re.search('\[4\dm', self.board[coord[1]-1][coord[0]]):

@@ -31,12 +31,25 @@ def helper(item):
     input()
 
 
-def rnd_color_generator():
-    fore = randint(30, 39)
-    back = randint(30, 39)
-    while back == fore:
-        back = randint(31, 39)
-    return '\x1b[{:d}m'.format(fore), '\x1b[{:d}m'.format(back+10)
+def rnd_color_generator(gate_type):
+    if gate_type != 'PIP' and gate_type != 'SRC':
+        if gate_type == 'NOT':
+            back = 34
+        elif gate_type == 'AND':
+            back = 35
+        else:
+            back = 36
+    else:
+        back = 31
+        x_ar = [33, 36, 37, 38]
+        fore = x_ar[randint(0, 3)]
+        return ['\x1b[{:d}m'.format(fore), '\x1b[{:d}m'.format(back + 10)]
+    fore = randint(31, 38)
+    while fore == back:
+        fore = randint(31, 38)
+        if back in [31, 35] and fore in [31, 35]:
+            fore = back
+    return ['\x1b[{:d}m'.format(fore), '\x1b[{:d}m'.format(back+10)]
 
 
 RESET_COLORS = '\x1b[0m'
@@ -91,12 +104,8 @@ while status:
                         input('Gate with this name is already on board')
                     else:
                         cur_board.add(gate_type, name)
-                        colors = rnd_color_generator()
+                        colors = rnd_color_generator(gate_type)
                         if gate_type == 'SRC':
-                            fnt = colors[0]
-                            if fnt == '\x1b[31m':
-                                fnt = '\x1b[32m'
-                            colors = (fnt, '\x1b[41m')
                             text_board.coords[gate_type + name] = (cur_board.sources[gate_type + name], x, y, colors)
                         elif gate_type == 'PIP':
                             text_board.coords[gate_type + name] = (cur_board.sinks[gate_type + name], x, y, colors)
@@ -133,8 +142,24 @@ while status:
                     else:
                         in_name = in_gate[0]
                         inp = int(in_gate[1])
+                    if out_name not in text_board.coords or in_name not in text_board.coords:
+                        input('Gate with this name is not exist. Try again...')
+                        continue
                     text_board.draw_connection(out_name, out, in_name, inp)
 
+                    if in_name[:3] != 'PIP':
+                        cur_input = cur_board.gates[in_name].inputs[inp]
+                    else:
+                        cur_input = cur_board.sinks[in_name].inputs[inp]
+
+                    if out_name[:3] == 'SRC':
+                        cur_output = cur_board.sources[out_name]
+                    elif out_name[:3] == 'PIP':
+                        cur_output = cur_board.sinks[out_name]
+                    else:
+                        cur_output = cur_board.gates[out_name]
+
+                    cur_input.connect(cur_output, out)
     if command == '--delete':  # ToDo: implement this also
         pass
 
@@ -145,12 +170,56 @@ while status:
         text_board.clear_board()
 
     if command == '--run':
-        pass
+        match = re.search('\d{1,}', reminder)
+        if match:
+            count = int(match[0])
+        else:
+            count = 1
+        for j in range(count):
+            print('##### Iteration {:d} #####'.format(j))
+            res = cur_board.compute()
+            for i, sink in enumerate(cur_board.sinks):
+                print('{:s}: {:s}'.format(sink, str(res[i])))
+                color = '\x1b[41m'
+                if res[i]:
+                    color = '\x1b[42m'
+                text_board.coords[sink][3][1] = color
+                text_board.draw_gate(sink)
+        input('Press Enter to redraw all Pips...')
+        continue
 
     if command == '--change':
-        pass  # TODO: don't forget to change the color
+        match = re.search('\w{1,}', reminder)
+        if match:
+            name = match[0]
+            if name not in text_board.coords or 'SRC' not in name:
+                input('Source with this name is not exist. Try again...')
+                continue
+            if text_board.coords[name][3][1] == '\x1b[42m':
+                text_board.coords[name][3][1] = '\x1b[41m'
+            else:
+                text_board.coords[name][3][1] = '\x1b[42m'
+
+            text_board.draw_gate(name)
+            cur_board.sources[name].change()
 
     if command == '--set':
-        pass
-        '\x1b[{:d}m'  # <- color 41-red, 42-green
+        match = re.search('\w{1,} \w{4,}', reminder)
+        if match:
+            name, value = match[0].split(' ')
+            value = value.lower()
+            if name not in text_board.coords or 'SRC' not in name:
+                input('Source with this name is not exist. Try again...')
+                continue
+            if value == 'true':
+                text_board.coords[name][3][1] = '\x1b[42m'
+                v = True
+            elif value == 'false':
+                text_board.coords[name][3][1] = '\x1b[41m'
+                v = False
+            else:
+                input('Command is not correct. Try again...')
+                continue
+            text_board.draw_gate(name)
+            cur_board.sources[name].set(v)
 

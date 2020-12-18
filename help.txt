@@ -6,14 +6,14 @@ Example of using the game:
 --create NOT my1 15 5, my2 15 10
 --create AND my3 25 6
 --create PIP s3 35 7
---connect s1 0, my1 0
---connect s2 0, my2 0
---connect my1 0, my3 0
---connect my2 0, my3 1
---connect my3 0, s3 0
+--connect SRCs1 0, NOTmy1 0
+--connect SRCs2 0, NOTmy2 0
+--connect NOTmy1 0, ANDmy3 0
+--connect NOTmy2 0, ANDmy3 1
+--connect ANDmy3 0, PIPs3 0
 --run 2
---set s1 True
---change s2
+--set SRCs1 True
+--change SRCs2
 --run
 This set of commands will create the NOT-OR gate on the board, and then on the Sink s2
 you will see the value you received. After than you change the initial values on sources.
