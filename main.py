@@ -28,7 +28,7 @@ if __name__ == '__main__':
     cur_board.sinks['PIPOUT1'].inputs[0].connect(cur_board.gates['COM_OR1'])
 
     cur_board.print_content()
-    print('Result: ', cur_board.compute(), '. Should be False')  # <-- error in calculation
+    print('Result: ', cur_board.compute(), '. Should be False')
     cur_board.sources['SRCIN1'].change()
     print('Result: ', cur_board.compute(), '. Should be True')
 

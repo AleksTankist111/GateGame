@@ -3,17 +3,7 @@ from board import Board
 import os
 import re
 from random import randint
-
-
-def draw_board(board):
-    print(' ' + '-' * len(board[0]))
-    for row in board:
-        s = '|'
-        for char in row:
-            s += char
-        s += '|'
-        print(s)
-    print(' ' + '-' * len(board[0]))
+from draw import *
 
 
 def parse(line):
@@ -28,26 +18,12 @@ def parse(line):
 def helper(item):
     os.system('cls')
     if not item:    # TODO: перенести все записи в файл "help.txt"
-        print('Space {:d}x{:d} is available for you to put there gates.'.format(N, M))
-        print('Each gate not wider than 10 cells, but can be of any height(depends of number of I/O)')
-        print('PLEASE USE NAMES <6 symbols length of!')
-        print('Example of using the game:')
-        print('--create SRC s1 5 5, s2 5 10')
-        print('--create NOT my1 15 5, my2 15 10')
-        print('--create AND my3 25 6')
-        print('--create PIP s3 35 7')
-        print('--connect s1 0 my1 0')
-        print('--connect s2 0 my2 0')
-        print('--connect my1 0 my3 0')
-        print('--connect my2 0 my3 1')
-        print('--connect my3 0 s3 0')
-        print('--run 2')
-        print('--set s1 True')
-        print('--change s2')
-        print('--run')
-        print('This set of commands will create the NOT-OR gate on the board, and then on the Sink s2')
-        print('you will see the value you received. After than you change the initial values on sources.')
-        print('Then you will notice that value on the sink has changed.')
+        with open('help.txt', 'r') as h:
+            line = h.readline()
+            while line != '\n':
+                print(line, end='')
+                line = h.readline()
+
     else:
         pass
 
@@ -55,41 +31,9 @@ def helper(item):
     input()
 
 
-def clear_board():
-    return [[' ' for i in range(M)] for j in range(N)]
-
-
-def draw_gate(item):
-    gate = item[0]
-    x, y = item[1:3]
-    fore, back = item[3]
-    if gate.name[:3] != 'SRC':
-        inp_count = len(gate.inputs)
-    else:
-        inp_count = 0
-    out_count = len(gate.outputs)
-    height = max(inp_count, out_count)
-    for i in range(x + 1, x + 9):
-        text_board[y][i] = fore + '_' + RESET_COLORS
-    for i in range(height):
-        if inp_count > 0:
-            text_board[y + 1 + i][x - 1] = fore + '-' + RESET_COLORS
-            inp_count -= 1
-        text_board[y + 1 + i][x] = fore + '|' + back
-        text_board[y + 1 + i][x + 9] = RESET_COLORS + fore + '|' + RESET_COLORS
-        if out_count > 0:
-            text_board[y + 1 + i][x + 10] = fore + '-' + RESET_COLORS
-            out_count -= 1
-    for j in range(1, 9):
-        text_board[y + 1 + i][x + j] = fore + back + '_' + RESET_COLORS
-    bias = max((8 - len(gate.name)) // 2 + (8 - len(gate.name)) % 2, 0)
-    for j in range(x + 1 + bias, x + 9 - bias):
-        text_board[y + 1 + height // 2][j] = fore + back + gate.name[j - x - 1 - bias] + RESET_COLORS
-
-
 def rnd_color_generator():
-    fore = randint(31, 39)
-    back = randint(31, 39)
+    fore = randint(30, 39)
+    back = randint(30, 39)
     while back == fore:
         back = randint(31, 39)
     return '\x1b[{:d}m'.format(fore), '\x1b[{:d}m'.format(back+10)
@@ -99,19 +43,21 @@ RESET_COLORS = '\x1b[0m'
 N = 25
 M = 100
 status = True
-text_board = clear_board()
-commands = ['saved', 'save', 'create', 'connect', 'delcon', 'delete', 'run', 'change', 'set']
+text_board = Textboard(N, M)
+commands = ['saved', 'save', 'create', 'connect', 'delcon', 'delete', 'clear', 'run', 'change', 'set']
 cur_board = Board()
-coords = {}
 
 while status:
     os.system('cls')
     print('Write "--help" for help to view a list of available commands')
-    draw_board(text_board)
+    text_board.draw_board()
 
     line = input()
     command = parse(line)
+    if command is None:
+        continue
     reminder = line[len(command):]
+
     if command == '--help':
         helper(reminder)
 
@@ -127,8 +73,7 @@ while status:
         match = re.search('\w{1,}', reminder)
         if match:
             cur_board.save(match[0])
-            coords.clear()
-            text_board = clear_board()
+            text_board.clear_board()
         else:
             input('Wrong name of gate. Press enter and try again...')
 
@@ -142,34 +87,70 @@ while status:
                     name, x, y = gate.split(' ')
                     x = int(x)
                     y = int(y)
-                    cur_board.add(gate_type, name)
-                    colors = rnd_color_generator()
-                    if gate_type == 'SRC':
-                        coords[name] = (cur_board.sources[gate_type + name], x, y, colors)
-                    elif gate_type == 'PIP':
-                        coords[name] = (cur_board.sinks[gate_type + name], x, y, colors)
+                    if gate_type + name in text_board.coords:
+                        input('Gate with this name is already on board')
                     else:
-                        coords[name] = (cur_board.gates[gate_type + name], x, y, colors)
-                    draw_gate(coords[name])
+                        cur_board.add(gate_type, name)
+                        colors = rnd_color_generator()
+                        if gate_type == 'SRC':
+                            fnt = colors[0]
+                            if fnt == '\x1b[31m':
+                                fnt = '\x1b[32m'
+                            colors = (fnt, '\x1b[41m')
+                            text_board.coords[gate_type + name] = (cur_board.sources[gate_type + name], x, y, colors)
+                        elif gate_type == 'PIP':
+                            text_board.coords[gate_type + name] = (cur_board.sinks[gate_type + name], x, y, colors)
+                        else:
+                            text_board.coords[gate_type + name] = (cur_board.gates[gate_type + name], x, y, colors)
+                        text_board.draw_gate(gate_type + name)
             else:
                 input('Wrong creation call. Try again...')
         else:
             input('Wrong creation call. Try again...')
 
     if command == '--connect':
-        pass
+        gates = reminder.split(',')
+        if len(gates) != 2:
+            input('Wrong command. Try again...')
+        else:
+            out_gate = re.findall('\w{1,}\d{0,}' ,gates[0])
+            if len(out_gate) == 0 or len(out_gate) > 2:
+                input('Wrong command. Try again...')
+            else:
+                if len(out_gate) == 1:
+                    out = 0
+                    out_name = out_gate[0]
+                else:
+                    out_name = out_gate[0]
+                    out = int(out_gate[1])
+                in_gate = re.findall('\w{1,}\d{0,}', gates[1])
+                if len(in_gate) == 0 or len(in_gate) > 2:
+                    input('Wrong command. Try again...')
+                else:
+                    if len(in_gate) == 1:
+                        inp = 0
+                        in_name = in_gate[0]
+                    else:
+                        in_name = in_gate[0]
+                        inp = int(in_gate[1])
+                    text_board.draw_connection(out_name, out, in_name, inp)
 
-    if command == '--delete':
+    if command == '--delete':  # ToDo: implement this also
         pass
 
     if command == '--delcon':  # ToDo: implement this also
         pass
 
+    if command == '--clear':
+        text_board.clear_board()
+
     if command == '--run':
         pass
 
     if command == '--change':
-        pass
+        pass  # TODO: don't forget to change the color
 
     if command == '--set':
         pass
+        '\x1b[{:d}m'  # <- color 41-red, 42-green
+

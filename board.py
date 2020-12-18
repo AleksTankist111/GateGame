@@ -44,7 +44,8 @@ class Board:
             del self.__saved_modules[name]
 
     def add(self, name, new_name=None):
-        if name not in self.__saved_modules.keys() or name == self._cur_name:
+        if name not in self.__saved_modules.keys() or name == self._cur_name \
+                or name in self.sources or name in self.gates or name in self.sinks:
             print('Module with this name is not exist or not available now')
         else:
             if new_name is None:
